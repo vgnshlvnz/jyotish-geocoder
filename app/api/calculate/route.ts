@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Date, time and place are required" }, { status: 400 });
     }
 
-    // FIXED: Construct full URL for server-side fetch
+    // FIXED: Build full URL for server-side fetch (works on Vercel)
     const protocol = process.env.VERCEL_URL ? 'https' : 'http';
     const host = process.env.VERCEL_URL || 'localhost:3000';
     const baseUrl = `${protocol}://${host}`;
