@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-6">
       <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold tracking-tighter text-amber-400">Jyotish Lagna</h1>
+        <h1 className="text-5xl font-bold tracking-tight text-amber-400">Jyotish Lagna</h1>
         <p className="text-zinc-400 mt-3">Udaya • Hora • Ghati Lagna Calculator</p>
       </div>
 
@@ -102,21 +102,18 @@ export default function Home() {
           <h2 className="text-3xl font-medium mb-8 text-center">Lagna Results</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Udaya Lagna */}
             <div className="text-center border border-amber-400/30 rounded-3xl p-6">
               <div className="text-amber-400 text-sm tracking-widest mb-2">UDAYA LAGNA</div>
               <div className="text-6xl font-light">{result.udaya.rasi}</div>
               <div className="text-4xl mt-2 font-mono">{result.udaya.degree}° {result.udaya.minute}'</div>
             </div>
 
-            {/* Hora Lagna */}
             <div className="text-center border border-zinc-700 rounded-3xl p-6">
               <div className="text-zinc-400 text-sm tracking-widest mb-2">HORA LAGNA</div>
               <div className="text-6xl font-light">{result.hora.rasi}</div>
               <div className="text-4xl mt-2 font-mono">{result.hora.degree}° {result.hora.minute}'</div>
             </div>
 
-            {/* Ghati Lagna */}
             <div className="text-center border border-zinc-700 rounded-3xl p-6">
               <div className="text-zinc-400 text-sm tracking-widest mb-2">GHATI LAGNA</div>
               <div className="text-6xl font-light">{result.ghati.rasi}</div>
