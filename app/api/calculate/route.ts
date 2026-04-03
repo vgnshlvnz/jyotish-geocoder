@@ -9,8 +9,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Date, time and place are required" }, { status: 400 });
     }
 
-    // FIXED: Use relative URL (works on Vercel and locally)
-    const geoRes = await fetch('/api/geocode', {
+    // FIXED: Construct full URL for server-side fetch
+    const protocol = process.env.VERCEL_URL ? 'https' : 'http';
+    const host = process.env.VERCEL_URL || 'localhost:3000';
+    const baseUrl = `${protocol}://${host}`;
+
+    const geoRes = await fetch(`${baseUrl}/api/geocode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ q: place }),
