@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "astronomia": "^2.2.0",
     "date-fns": "^3.6.0",
     "next": "^15.3.0",
