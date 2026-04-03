@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Date, time and place are required" }, { status: 400 });
     }
 
-    // FIXED: Build full URL for server-side fetch (works on Vercel)
+    // FIXED: Build full URL for server-side fetch (works reliably on Vercel)
     const protocol = process.env.VERCEL_URL ? 'https' : 'http';
     const host = process.env.VERCEL_URL || 'localhost:3000';
     const baseUrl = `${protocol}://${host}`;
@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!geoRes.ok) {
+      console.error('Geocode failed with status:', geoRes.status);
       return NextResponse.json({ error: "Geocoding service unavailable. Please try again later." }, { status: 500 });
     }
 
@@ -38,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid coordinates returned" }, { status: 500 });
     }
 
-    // Simple astronomical calculation for Lagnas
+    // Simple astronomical calculation for Lagnas (Lahiri Ayanamsa)
     const birthDateTime = parseISO(`${date}T${time}:00`);
     const year = birthDateTime.getUTCFullYear();
     const month = birthDateTime.getUTCMonth() + 1;
