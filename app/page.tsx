@@ -38,7 +38,7 @@ export default function Home() {
 
       setResult(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Something went wrong. Please check your input.');
     } finally {
       setLoading(false);
     }
@@ -47,7 +47,7 @@ export default function Home() {
   return (
     <div className="max-w-4xl mx-auto py-12 px-6">
       <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold tracking-tight text-amber-400">Jyotish Lagna</h1>
+        <h1 className="text-5xl font-bold tracking-tighter text-amber-400">Jyotish Lagna</h1>
         <p className="text-zinc-400 mt-3">Udaya • Hora • Ghati Lagna Calculator</p>
       </div>
 
@@ -59,7 +59,7 @@ export default function Home() {
               type="date"
               value={form.date}
               onChange={(e) => setForm({ ...form, date: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 focus:border-amber-400 outline-none"
+              className="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-400 rounded-2xl px-5 py-4 outline-none"
               required
             />
           </div>
@@ -69,7 +69,7 @@ export default function Home() {
               type="time"
               value={form.time}
               onChange={(e) => setForm({ ...form, time: e.target.value })}
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 focus:border-amber-400 outline-none"
+              className="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-400 rounded-2xl px-5 py-4 outline-none"
               required
             />
           </div>
@@ -80,7 +80,7 @@ export default function Home() {
               value={form.place}
               onChange={(e) => setForm({ ...form, place: e.target.value })}
               placeholder="Kuala Lumpur, Malaysia"
-              className="w-full bg-zinc-950 border border-zinc-700 rounded-2xl px-5 py-4 focus:border-amber-400 outline-none"
+              className="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-400 rounded-2xl px-5 py-4 outline-none"
               required
             />
           </div>
@@ -89,7 +89,7 @@ export default function Home() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-8 w-full bg-amber-400 hover:bg-amber-300 disabled:bg-zinc-700 text-black font-semibold py-5 rounded-3xl text-lg transition-colors"
+          className="mt-8 w-full bg-amber-400 hover:bg-amber-300 disabled:bg-zinc-700 transition-colors text-black font-semibold py-5 rounded-3xl text-lg"
         >
           {loading ? 'Calculating Lagnas...' : 'Calculate 3 Lagnas'}
         </button>
