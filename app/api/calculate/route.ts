@@ -9,21 +9,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Date, time and place are required" }, { status: 400 });
     }
 
-    // 1. Geocode the place - use relative URL for Vercel compatibility
-    const geoRes = await fetch(`${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/api/geocode`, {
+    // FIXED: Use relative URL for Vercel compatibility
+    const baseUrl = process.env.VERCEL_URL 
+      ? `https://${process.env.VERCEL_URL}` 
+      : 'http://localhost:3000';
+
+    const geoRes = await fetch(`${baseUrl}/api/geocode`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ q: place }),
     });
 
     if (!geoRes.ok) {
-      return NextResponse.json({ error: "Geocoding service unavailable" }, { status: 500 });
+      return NextResponse.json({ error: "Geocoding service unavailable. Please try again later." }, { status: 500 });
     }
 
     const geoData = await geoRes.json();
 
     if (!geoData || geoData.length === 0) {
-      return NextResponse.json({ error: "Place not found. Please try a different name or more specific location." }, { status: 404 });
+      return NextResponse.json({ error: "Place not found. Please try a different or more specific location." }, { status: 404 });
     }
 
     const location = geoData[0];
@@ -31,19 +35,16 @@ export async function POST(req: NextRequest) {
     const lon = parseFloat(location.lon);
 
     if (isNaN(lat) || isNaN(lon)) {
-      return NextResponse.json({ error: "Invalid coordinates returned from geocoding" }, { status: 500 });
+      return NextResponse.json({ error: "Invalid coordinates returned" }, { status: 500 });
     }
 
-    // 2. Prepare birth time
+    // Simple astronomical calculation for Lagnas
     const birthDateTime = parseISO(`${date}T${time}:00`);
-
-    // 3. Simple astronomical calculation for Lagnas (Lahiri Ayanamsa)
     const year = birthDateTime.getUTCFullYear();
     const month = birthDateTime.getUTCMonth() + 1;
     const day = birthDateTime.getUTCDate();
     const utcHours = birthDateTime.getUTCHours() + birthDateTime.getUTCMinutes() / 60;
 
-    // Rough Julian Day
     const jd = 367 * year - Math.floor(7 * (year + Math.floor((month + 9) / 12)) / 4) +
                Math.floor(275 * month / 9) + day + 1721013.5 + utcHours / 24;
 
@@ -51,10 +52,8 @@ export async function POST(req: NextRequest) {
     const t = (jd - 2451545.0) / 36525;
     const ayanamsa = 23.853 + 0.000133 * t;
 
-    // Local Sidereal Time approximation
+    // Rough Ascendant calculation
     const lst = (jd - 2451545.0) * 0.0657098 + utcHours * 1.0027379 + lon / 15 + 18.697374558;
-
-    // Ascendant (Udaya Lagna) - simplified formula
     const obliquity = 23.439 - 0.0000004 * (jd - 2451545.0);
     const asc = (Math.atan2(
       Math.sin(lst * Math.PI / 12),
@@ -62,8 +61,6 @@ export async function POST(req: NextRequest) {
     ) * 180 / Math.PI + 360) % 360;
 
     const udayaDeg = (asc + ayanamsa) % 360;
-
-    // Hora and Ghati Lagna (standard approximations)
     const horaDeg = (udayaDeg + 30) % 360;
     const ghatiDeg = (udayaDeg + 60) % 360;
 
