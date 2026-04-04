@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import PARIHARA_DATA, { PariharaInfo } from '../lib/pariharaData';
+import PLANET_DATA from '../lib/planetData';
 import FeedbackForm from '../components/FeedbackForm';
 
 type LagnaData = {
@@ -39,6 +40,12 @@ const RASI_COLORS: Record<string, string> = {
   Karka: '#B7791F', Simha: '#DD6B20', Kanya: '#2F855A',
   Tula: '#6B46C1', Vrishchika: '#9B2C2C', Dhanus: '#C05621',
   Makara: '#2D3748', Kumbha: '#2B6CB0', Meena: '#285E61',
+};
+
+const GRAHA_COLORS: Record<string, string> = {
+  Surya: '#E8821A', Chandra: '#A8B4C8', Kuja: '#C53030',
+  Budha: '#2F855A', Guru: '#C9940A', Shukra: '#B83280',
+  Shani: '#4A5568', Rahu: '#6B46C1', Ketu: '#718096',
 };
 
 const LAGNA_META = {
@@ -590,15 +597,204 @@ function PariharaPanel({ rasi, lagnaType }: { rasi: string; lagnaType: string })
   );
 }
 
+function PlanetPanel({ planet }: { planet: string }) {
+  const [tab, setTab] = useState<'overview' | 'health' | 'domains' | 'profile'>('overview');
+  const data = PLANET_DATA[planet];
+  if (!data) return null;
+  const gc = GRAHA_COLORS[planet] || '#D4A017';
+
+  const tabs: { key: typeof tab; label: string; icon: string }[] = [
+    { key: 'overview',  label: 'Overview',    icon: '◎' },
+    { key: 'health',    label: 'Health',       icon: '⚕' },
+    { key: 'domains',   label: 'Domains',      icon: '◈' },
+    { key: 'profile',   label: 'Profile',      icon: '✦' },
+  ];
+
+  const Chip = ({ text }: { text: string }) => (
+    <span style={{
+      fontSize: '11px', padding: '3px 10px', borderRadius: '12px',
+      background: `${gc}15`, border: `1px solid ${gc}30`,
+      color: 'rgba(255,255,255,0.72)',
+    }}>{text}</span>
+  );
+
+  return (
+    <div style={{
+      background: 'rgba(12,12,24,0.9)',
+      border: `1px solid ${gc}33`,
+      borderRadius: '20px',
+      overflow: 'hidden',
+      marginTop: '16px',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '14px 20px',
+        background: `linear-gradient(90deg, ${gc}18 0%, transparent 100%)`,
+        borderBottom: `1px solid ${gc}22`,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div>
+          <span style={{ fontFamily: 'var(--font-display)', fontSize: '13px', color: '#F4F0E8', letterSpacing: '0.06em' }}>
+            {planet}
+          </span>
+          <span style={{ fontSize: '10px', color: gc, marginLeft: '10px', letterSpacing: '0.08em' }}>
+            {data.englishName}
+          </span>
+        </div>
+        <span style={{
+          fontSize: '10px', color: 'rgba(255,255,255,0.3)',
+          letterSpacing: '0.06em', fontFamily: 'var(--font-mono)',
+        }}>
+          {data.color}
+        </span>
+      </div>
+
+      {/* Tabs */}
+      <div style={{
+        display: 'flex', gap: '2px', padding: '10px 12px 0',
+        borderBottom: '1px solid rgba(255,255,255,0.05)', overflowX: 'auto',
+      }}>
+        {tabs.map(t => (
+          <button key={t.key} onClick={() => setTab(t.key)} style={{
+            padding: '6px 12px', borderRadius: '8px 8px 0 0', border: 'none',
+            background: tab === t.key ? `${gc}22` : 'transparent',
+            color: tab === t.key ? gc : 'rgba(255,255,255,0.35)',
+            fontSize: '11px', fontFamily: 'var(--font-body)', cursor: 'pointer',
+            whiteSpace: 'nowrap',
+            borderBottom: tab === t.key ? `2px solid ${gc}` : '2px solid transparent',
+            transition: 'all 0.2s', letterSpacing: '0.04em',
+          }}>
+            <span style={{ marginRight: '5px' }}>{t.icon}</span>{t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '20px' }}>
+
+        {/* OVERVIEW */}
+        {tab === 'overview' && (
+          <div style={{ display: 'grid', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+              {[
+                { label: 'Nature',          value: data.nature },
+                { label: 'Orbital Period',  value: data.orbitalPeriod },
+                { label: 'Represents',      value: data.represents },
+                { label: 'Gemstone',        value: data.gemstone },
+              ].map(item => (
+                <div key={item.label} style={{
+                  padding: '12px', background: 'rgba(255,255,255,0.03)',
+                  border: `1px solid ${gc}20`, borderRadius: '12px',
+                }}>
+                  <div style={{ fontSize: '9px', color: gc, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '5px' }}>
+                    {item.label}
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', lineHeight: 1.5 }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div style={{ fontSize: '9px', color: gc, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                Body Parts Governed
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {data.bodyParts.map(b => <Chip key={b} text={b} />)}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* HEALTH */}
+        {tab === 'health' && (
+          <div>
+            <div style={{ fontSize: '9px', color: gc, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '12px' }}>
+              Associated Diseases & Ailments
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {data.diseases.map(d => (
+                <span key={d} style={{
+                  fontSize: '11px', padding: '4px 11px', borderRadius: '12px',
+                  background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)',
+                  color: 'rgba(252,165,165,0.85)',
+                }}>{d}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* DOMAINS */}
+        {tab === 'domains' && (
+          <div style={{ display: 'grid', gap: '18px' }}>
+            {[
+              { label: 'Materials & Items', items: data.materials, color: '#60a5fa' },
+              { label: 'Places Governed',   items: data.places,    color: '#4ade80' },
+              { label: 'Animals',           items: data.animals,   color: '#f6ad55' },
+            ].map(section => (
+              <div key={section.label}>
+                <div style={{ fontSize: '9px', color: section.color, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  {section.label}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                  {section.items.map(item => (
+                    <span key={item} style={{
+                      fontSize: '11px', padding: '3px 10px', borderRadius: '12px',
+                      background: `${section.color}12`, border: `1px solid ${section.color}30`,
+                      color: 'rgba(255,255,255,0.7)',
+                    }}>{item}</span>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* PROFILE */}
+        {tab === 'profile' && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+            <div>
+              <div style={{ fontSize: '9px', color: gc, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                Physical Appearance
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '6px' }}>
+                {data.physique.map(p => (
+                  <li key={p} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', display: 'flex', gap: '8px', lineHeight: 1.5 }}>
+                    <span style={{ color: gc, flexShrink: 0 }}>▸</span>{p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <div style={{ fontSize: '9px', color: '#60a5fa', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '10px' }}>
+                Personality & Character
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '6px' }}>
+                {data.personality.map(p => (
+                  <li key={p} style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', display: 'flex', gap: '8px', lineHeight: 1.5 }}>
+                    <span style={{ color: '#60a5fa', flexShrink: 0 }}>▸</span>{p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
 function LagnaSection({ type, data }: { type: 'udaya' | 'hora' | 'ghati'; data: LagnaData }) {
   const [showParihara, setShowParihara] = useState(type === 'udaya');
+  const [showGraha, setShowGraha] = useState(false);
   const meta = LAGNA_META[type];
   const rasiColor = RASI_COLORS[data.rasi] || '#888';
+  const lord = RASI_LORDS[data.rasi] || '';
+  const grahaColor = GRAHA_COLORS[lord] || '#D4A017';
 
   return (
     <div style={{ marginBottom: '24px' }}>
       <LagnaHeader type={type} data={data} />
-      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
         <button
           onClick={() => setShowParihara(!showParihara)}
           style={{
@@ -617,8 +813,29 @@ function LagnaSection({ type, data }: { type: 'udaya' | 'hora' | 'ghati'; data: 
           <span>{showParihara ? '▾' : '▸'}</span>
           {showParihara ? 'Hide' : 'Show'} Parihara, Deity & Prayer
         </button>
+        {lord && (
+          <button
+            onClick={() => setShowGraha(!showGraha)}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '6px',
+              padding: '6px 16px',
+              background: showGraha ? `${grahaColor}18` : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${showGraha ? grahaColor + '44' : 'rgba(255,255,255,0.1)'}`,
+              borderRadius: '20px',
+              color: showGraha ? grahaColor : 'rgba(255,255,255,0.4)',
+              fontSize: '11px',
+              cursor: 'pointer',
+              letterSpacing: '0.08em',
+              transition: 'all 0.2s',
+            }}
+          >
+            <span>{showGraha ? '▾' : '▸'}</span>
+            {showGraha ? 'Hide' : 'Show'} {lord} Characteristics
+          </button>
+        )}
       </div>
       {showParihara && <PariharaPanel rasi={data.rasi} lagnaType={meta.shortLabel} />}
+      {showGraha && lord && <PlanetPanel planet={lord} />}
     </div>
   );
 }
@@ -907,6 +1124,16 @@ export default function Home() {
             </div>
 
             <FeedbackForm defaultLagna={`${result.udaya.rasi} Udaya`} />
+
+            <div style={{ textAlign: 'center', marginTop: '16px' }}>
+              <a href="/chart" style={{
+                color: 'rgba(212,160,23,0.6)', fontSize: '12px',
+                letterSpacing: '0.08em', textDecoration: 'none',
+                transition: 'color 0.2s',
+              }}>
+                ✦ Open Birth Chart Generator →
+              </a>
+            </div>
           </div>
         )}
       </main>
