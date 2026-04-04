@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import PARIHARA_DATA, { PariharaInfo } from '../lib/pariharaData';
+import FeedbackForm from '../components/FeedbackForm';
 
 type LagnaData = {
   rasi: string;
@@ -904,6 +905,8 @@ export default function Home() {
               Lahiri (Chitrapaksha) Ayanamsa · IAU 1982 GMST · Solar altitude sunrise model ·
               Parihara recommendations are traditional Shaiva-Vaishnava and Tamil Siddha sampradaya guidance
             </div>
+
+            <FeedbackForm defaultLagna={`${result.udaya.rasi} Udaya`} />
           </div>
         )}
       </main>
