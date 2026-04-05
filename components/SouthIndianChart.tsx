@@ -57,7 +57,7 @@ function CellContent({ rasi, planetsInRasi, isLagna }: {
         style={{
           fontSize: '10px',
           fontFamily: 'var(--font-body)',
-          fill: '#5f7183',
+          fill: '#2b3f52',
           letterSpacing: '0.08em',
         }}
       >
@@ -77,7 +77,7 @@ function CellContent({ rasi, planetsInRasi, isLagna }: {
         const px = twoCol ? (col === 0 ? centerX - 30 : centerX + 30) : 12;
         const py = startY + row * lineH;
         if (py > CELL - 10) return null;
-        const color = PLANET_COLORS[p.planet] ?? '#D4A017';
+        const color = PLANET_COLORS[p.planet] ?? '#1476d1';
         return (
           <g key={p.planet}>
             <text
@@ -126,19 +126,19 @@ export default function SouthIndianChart({ planets }: Props) {
           <defs>
             <linearGradient id="south-chart-bg" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="100%" stopColor="#f4f8fc" />
+              <stop offset="100%" stopColor="#ffffff" />
             </linearGradient>
             <linearGradient id="south-cell-bg" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="100%" stopColor="#f7fbff" />
+              <stop offset="100%" stopColor="#ffffff" />
             </linearGradient>
             <linearGradient id="south-lagna-bg" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#eaf4ff" />
-              <stop offset="100%" stopColor="#f6fbff" />
+              <stop offset="100%" stopColor="#ffffff" />
             </linearGradient>
           </defs>
 
-          <rect width="480" height="480" fill="url(#south-chart-bg)" />
+          <rect width="480" height="480" fill="#ffffff" />
 
           {Array.from({ length: 4 }, (_, row) =>
             Array.from({ length: 4 }, (_, col) => {

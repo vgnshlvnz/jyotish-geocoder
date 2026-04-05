@@ -63,7 +63,7 @@ function Pill({ label, value }: { label: string; value: string }) {
       fontSize: 12,
       color: '#344a5f',
     }}>
-      <strong style={{ color: '#60758a' }}>{label}</strong>{value}
+      <strong style={{ color: '#3f556a' }}>{label}</strong>{value}
     </span>
   );
 }
@@ -128,7 +128,7 @@ export default function HomePage() {
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px 48px' }}>
       <header style={{ marginBottom: 18 }}>
         <h1 style={{ margin: 0, fontSize: 32, color: '#1d2733' }}>Kundli Calculator</h1>
-        <p style={{ margin: '6px 0 0', color: '#60758a', fontSize: 14 }}>
+        <p style={{ margin: '6px 0 0', color: '#3f556a', fontSize: 14 }}>
           Flat bright view with unified Lagna + chart output.
         </p>
       </header>
@@ -137,21 +137,21 @@ export default function HomePage() {
         <form onSubmit={handleSubmit}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 10 }}>
             <label style={{ display: 'grid', gap: 5 }}>
-              <span style={{ fontSize: 12, color: '#5d7388' }}>Birth Date</span>
+              <span style={{ fontSize: 12, color: '#344b60' }}>Birth Date</span>
               <input className="astro-input" type="date" required value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '10px 12px' }} />
             </label>
             <label style={{ display: 'grid', gap: 5 }}>
-              <span style={{ fontSize: 12, color: '#5d7388' }}>Birth Time (Local)</span>
+              <span style={{ fontSize: 12, color: '#344b60' }}>Birth Time (Local)</span>
               <input className="astro-input" type="time" required value={time} onChange={(e) => setTime(e.target.value)} style={{ padding: '10px 12px' }} />
             </label>
             <label style={{ display: 'grid', gap: 5 }}>
-              <span style={{ fontSize: 12, color: '#5d7388' }}>Birth Place</span>
+              <span style={{ fontSize: 12, color: '#344b60' }}>Birth Place</span>
               <LocationInput onSelect={handleLocSelect} />
             </label>
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: 12, color: '#5d7388' }}>Timezone Offset (minutes)</span>
+            <span style={{ fontSize: 12, color: '#344b60' }}>Timezone Offset (minutes)</span>
             <input className="astro-input" type="number" value={tzOffset} onChange={(e) => setTzOffset(Number(e.target.value))} min={-840} max={840} step={15} style={{ width: 90, padding: '8px 10px' }} />
           </div>
 

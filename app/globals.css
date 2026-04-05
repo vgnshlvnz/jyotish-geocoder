@@ -5,14 +5,14 @@
 @layer base {
   :root {
     color-scheme: light;
-    --bg: #f6f8fb;
+    --bg: #ffffff;
     --surface: #ffffff;
     --line: #d9e2ec;
     --line-strong: #b6c5d6;
     --text: #1d2733;
     --text-muted: #5f7183;
     --accent: #1476d1;
-    --accent-soft: #e8f2fc;
+    --accent-soft: #f3f9ff;
     --font-body: "Segoe UI", system-ui, -apple-system, sans-serif;
     --font-display: "Georgia", "Times New Roman", serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -49,7 +49,7 @@
     font-family: var(--font-body);
     font-size: 0.95rem;
     font-weight: 600;
-    color: #223241;
+    color: #10263b;
   }
 
   .astro-chart-frame {
@@ -77,11 +77,11 @@
   .astro-table-shell thead th {
     position: sticky;
     top: 0;
-    background: #f0f4f8;
+    background: #ffffff;
     z-index: 1;
   }
 
-  .astro-table-shell tbody tr:hover { background: #f7fbff; }
+  .astro-table-shell tbody tr:hover { background: #f5faff; }
 
   .astro-input {
     width: 100%;

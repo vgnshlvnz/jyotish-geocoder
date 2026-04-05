@@ -80,7 +80,7 @@ function HousePolygon({ house, planetsInHouse, lagnaHouse }: {
         textAnchor="middle"
         style={{
           fontSize: '9px',
-          fill: isLagna ? '#1476d1' : '#7a8da3',
+          fill: isLagna ? '#1476d1' : '#2b3f52',
           fontFamily: 'var(--font-body)',
           letterSpacing: '0.08em',
         }}
@@ -142,11 +142,11 @@ export default function NorthIndianChart({ planets }: Props) {
           <defs>
             <linearGradient id="north-chart-bg" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="100%" stopColor="#f4f8fc" />
+              <stop offset="100%" stopColor="#ffffff" />
             </linearGradient>
           </defs>
 
-          <rect width="480" height="480" fill="url(#north-chart-bg)" />
+          <rect width="480" height="480" fill="#ffffff" />
           <polygon
             points={ptsToStr([V.ITL, V.ITR, V.IBR, V.IBL])}
             fill="none"
