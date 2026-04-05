@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "build:azure": "next build",
+    "start:azure": "bash ./startup.sh",
     "test:regression": "tsx --test tests/regression/*.test.ts",
     "test:e2e": "playwright test"
   },

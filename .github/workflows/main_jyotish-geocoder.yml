@@ -62,4 +62,5 @@ jobs:
           app-name: 'jyotish-geocoder'
           slot-name: 'Production'
           package: .
+          startup-command: 'bash ./startup.sh'
           
