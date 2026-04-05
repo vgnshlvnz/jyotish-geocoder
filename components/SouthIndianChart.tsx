@@ -5,9 +5,9 @@ import { PlanetPosition, RASI_NAMES_LIST } from '../lib/chartEngine';
 interface Props { planets: PlanetPosition[]; }
 
 const PLANET_COLORS: Record<string, string> = {
-  Sun: '#FFB300', Moon: '#90CAF9', Mars: '#EF5350',
-  Mercury: '#66BB6A', Jupiter: '#FFA726', Venus: '#EC407A',
-  Saturn: '#78909C', Rahu: '#B0BEC5', Ketu: '#B0BEC5', Lagna: '#D4A017',
+  Sun: '#c27c00', Moon: '#2f6fb6', Mars: '#c53030',
+  Mercury: '#18794e', Jupiter: '#b36b00', Venus: '#ad3f84',
+  Saturn: '#4b6073', Rahu: '#556987', Ketu: '#556987', Lagna: '#1476d1',
 };
 
 /**
@@ -56,9 +56,9 @@ function CellContent({ rasi, planetsInRasi, isLagna }: {
         y="14"
         style={{
           fontSize: '10px',
-          fontFamily: 'var(--font-display)',
-          fill: 'rgba(244,240,232,0.56)',
-          letterSpacing: '0.14em',
+          fontFamily: 'var(--font-body)',
+          fill: '#5f7183',
+          letterSpacing: '0.08em',
         }}
       >
         {label}
@@ -67,7 +67,7 @@ function CellContent({ rasi, planetsInRasi, isLagna }: {
       {isLagna && (
         <polygon
           points={`0,0 16,0 0,16`}
-          fill="rgba(212,160,23,0.4)"
+          fill="#d9ebfb"
         />
       )}
 
@@ -91,14 +91,11 @@ function CellContent({ rasi, planetsInRasi, isLagna }: {
                 fontWeight: 600,
                 letterSpacing: '0.01em',
               }}
-              paintOrder="stroke"
-              stroke="rgba(8,8,16,0.85)"
-              strokeWidth="2"
             >
-              {p.glyph}
+              {p.planet}
               {p.planet !== 'Lagna' && ` ${p.degree}°`}
               {p.isRetrograde && (
-                <tspan style={{ fill: 'rgba(239,68,68,0.82)', fontSize: '9px' }}> ℞</tspan>
+                <tspan style={{ fill: '#be123c', fontSize: '9px' }}> ℞</tspan>
               )}
             </text>
           </g>
@@ -128,29 +125,20 @@ export default function SouthIndianChart({ planets }: Props) {
         >
           <defs>
             <linearGradient id="south-chart-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#0b0b15" />
-              <stop offset="55%" stopColor="#10101d" />
-              <stop offset="100%" stopColor="#070710" />
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#f4f8fc" />
             </linearGradient>
             <linearGradient id="south-cell-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(255,255,255,0.06)" />
-              <stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#f7fbff" />
             </linearGradient>
             <linearGradient id="south-lagna-bg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(212,160,23,0.12)" />
-              <stop offset="100%" stopColor="rgba(212,160,23,0.03)" />
+              <stop offset="0%" stopColor="#eaf4ff" />
+              <stop offset="100%" stopColor="#f6fbff" />
             </linearGradient>
-            <radialGradient id="south-glow" cx="50%" cy="44%" r="72%">
-              <stop offset="0%" stopColor="rgba(212,160,23,0.14)" />
-              <stop offset="50%" stopColor="rgba(212,160,23,0.05)" />
-              <stop offset="100%" stopColor="transparent" />
-            </radialGradient>
           </defs>
 
           <rect width="480" height="480" fill="url(#south-chart-bg)" />
-          <rect width="480" height="480" fill="url(#south-glow)" />
-          <circle cx="240" cy="240" r="176" fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          <circle cx="240" cy="240" r="132" fill="none" stroke="rgba(212,160,23,0.08)" strokeWidth="1" />
 
           {Array.from({ length: 4 }, (_, row) =>
             Array.from({ length: 4 }, (_, col) => {
@@ -166,25 +154,10 @@ export default function SouthIndianChart({ planets }: Props) {
                       y={y}
                       width={CELL}
                       height={CELL}
-                      fill="rgba(255,255,255,0.02)"
-                      stroke="rgba(255,255,255,0.045)"
+                      fill="#ffffff"
+                      stroke="#d9e2ec"
                       strokeWidth="0.75"
                     />
-                    {key === '1,1' && (
-                      <text
-                        x={x + CELL}
-                        y={y + CELL}
-                        textAnchor="middle"
-                        dominantBaseline="middle"
-                        style={{
-                          fontSize: '30px',
-                          fill: 'rgba(212,160,23,0.1)',
-                          fontFamily: 'var(--font-display)',
-                        }}
-                      >
-                        🕉
-                      </text>
-                    )}
                   </g>
                 );
               }
@@ -202,7 +175,7 @@ export default function SouthIndianChart({ planets }: Props) {
                     width={CELL}
                     height={CELL}
                     fill={isLagna ? 'url(#south-lagna-bg)' : 'url(#south-cell-bg)'}
-                    stroke={isLagna ? 'rgba(212,160,23,0.68)' : 'rgba(255,255,255,0.08)'}
+                    stroke={isLagna ? '#1476d1' : '#d9e2ec'}
                     strokeWidth={isLagna ? 1.3 : 0.85}
                     vectorEffect="non-scaling-stroke"
                   />
@@ -213,7 +186,7 @@ export default function SouthIndianChart({ planets }: Props) {
                       width={CELL - 10}
                       height={CELL - 10}
                       fill="none"
-                      stroke="rgba(212,160,23,0.26)"
+                      stroke="#b7d7f3"
                       strokeWidth="0.9"
                       vectorEffect="non-scaling-stroke"
                     />
@@ -232,7 +205,7 @@ export default function SouthIndianChart({ planets }: Props) {
             width="480"
             height="480"
             fill="none"
-            stroke="rgba(255,255,255,0.12)"
+            stroke="#c8d7e6"
             strokeWidth="1"
             vectorEffect="non-scaling-stroke"
           />

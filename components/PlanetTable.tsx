@@ -5,9 +5,9 @@ import { PlanetPosition, RASI_NAMES_LIST } from '../lib/chartEngine';
 interface Props { planets: PlanetPosition[]; }
 
 const PLANET_COLORS: Record<string, string> = {
-  Sun: '#FFB300', Moon: '#90CAF9', Mars: '#EF5350',
-  Mercury: '#66BB6A', Jupiter: '#FFA726', Venus: '#EC407A',
-  Saturn: '#78909C', Rahu: '#B0BEC5', Ketu: '#B0BEC5', Lagna: '#D4A017',
+  Sun: '#c27c00', Moon: '#2f6fb6', Mars: '#c53030',
+  Mercury: '#18794e', Jupiter: '#b36b00', Venus: '#ad3f84',
+  Saturn: '#4b6073', Rahu: '#556987', Ketu: '#556987', Lagna: '#1476d1',
 };
 
 export default function PlanetTable({ planets }: Props) {
@@ -19,7 +19,7 @@ export default function PlanetTable({ planets }: Props) {
         <table>
           <thead>
             <tr>
-              {['', 'Planet', 'Rasi', 'Degree', 'House', 'Status'].map((header) => (
+              {['Name', 'Planet', 'Rasi', 'Degree', 'House', 'Status'].map((header) => (
                 <th
                   key={header}
                   style={{
@@ -28,8 +28,8 @@ export default function PlanetTable({ planets }: Props) {
                     fontSize: 10,
                     letterSpacing: '0.14em',
                     textTransform: 'uppercase',
-                    color: 'rgba(244,240,232,0.46)',
-                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    color: '#5f7183',
+                    borderBottom: '1px solid #dbe5ef',
                     fontWeight: 600,
                     whiteSpace: 'nowrap',
                   }}
@@ -41,31 +41,32 @@ export default function PlanetTable({ planets }: Props) {
           </thead>
           <tbody>
             {rows.map((planet, index) => (
-              <tr key={planet.planet} style={{ background: index % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.02)' }}>
+              <tr key={planet.planet} style={{ background: index % 2 === 0 ? 'transparent' : '#f8fbff' }}>
                 <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                   <span style={{
-                    fontSize: 16,
+                    fontSize: 12,
                     color: PLANET_COLORS[planet.planet] ?? '#D4A017',
-                    filter: `drop-shadow(0 0 4px ${PLANET_COLORS[planet.planet] ?? '#D4A017'}66)`,
-                  }}>{planet.glyph}</span>
+                    fontFamily: 'var(--font-mono)',
+                    fontWeight: 600,
+                  }}>{planet.planet}</span>
                 </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: PLANET_COLORS[planet.planet] ?? '#f4f0e8' }}>
+                <td style={{ padding: '10px 14px', fontSize: 13, color: PLANET_COLORS[planet.planet] ?? '#1d2733' }}>
                   {planet.planet}
                 </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: 'rgba(244,240,232,0.78)', fontFamily: 'var(--font-display)' }}>
+                <td style={{ padding: '10px 14px', fontSize: 13, color: '#2f4356', fontFamily: 'var(--font-body)' }}>
                   {RASI_NAMES_LIST[planet.rasi]}
                 </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: 'rgba(244,240,232,0.68)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                <td style={{ padding: '10px 14px', fontSize: 13, color: '#41586e', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
                   {planet.degree}°{String(planet.minute).padStart(2, '0')}′
                 </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: 'rgba(212,160,23,0.9)', fontFamily: 'var(--font-mono)' }}>
+                <td style={{ padding: '10px 14px', fontSize: 13, color: '#1476d1', fontFamily: 'var(--font-mono)' }}>
                   {planet.house}
                 </td>
                 <td style={{ padding: '10px 14px', fontSize: 12 }}>
                   {planet.isRetrograde ? (
-                    <span style={{ color: 'rgba(239,68,68,0.85)', fontFamily: 'var(--font-mono)' }}>℞</span>
+                    <span style={{ color: '#be123c', fontFamily: 'var(--font-mono)' }}>℞</span>
                   ) : (
-                    <span style={{ color: 'rgba(244,240,232,0.25)' }}>—</span>
+                    <span style={{ color: '#9aabbd' }}>—</span>
                   )}
                 </td>
               </tr>

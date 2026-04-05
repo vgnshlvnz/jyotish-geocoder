@@ -27,68 +27,44 @@ type UnifiedResult = {
   elapsedHours: number;
   sunriseLocal: string | null;
   note?: string;
-  trace?: {
-    tzOffsetMinutes: number;
-    utcHour: number;
-    birthJulianDay: number;
-    sunriseJulianDay: number | null;
-  };
 };
 
 type LocState = { lat: number; lon: number; label: string };
 
 const LAGNA_META = {
-  udaya: { label: 'Udaya Lagna', tone: '#d4a017', desc: 'Ascendant at birth' },
-  hora: { label: 'Hora Lagna', tone: '#8b5cf6', desc: 'Wealth and resources' },
-  ghati: { label: 'Ghati Lagna', tone: '#10b981', desc: 'Power and authority' },
+  udaya: { label: 'Udaya Lagna', color: '#1476d1' },
+  hora: { label: 'Hora Lagna', color: '#7a5af8' },
+  ghati: { label: 'Ghati Lagna', color: '#10b981' },
 } as const;
 
-function formatLagna(data: LagnaData): string {
+function fmt(data: LagnaData): string {
   return `${data.rasi} ${data.degree}°${String(data.minute).padStart(2, '0')}′`;
 }
 
-function ResultPill({ label, value }: { label: string; value: string }) {
+function LagnaCard({ label, color, value }: { label: string; color: string; value: string }) {
+  return (
+    <div className="astro-shell" style={{ padding: 14 }}>
+      <div style={{ fontSize: 12, color, fontWeight: 700, marginBottom: 6 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 600, color: '#1d2733' }}>{value}</div>
+    </div>
+  );
+}
+
+function Pill({ label, value }: { label: string; value: string }) {
   return (
     <span style={{
       display: 'inline-flex',
       gap: 6,
       alignItems: 'center',
-      padding: '7px 12px',
-      borderRadius: 16,
+      padding: '6px 10px',
+      borderRadius: 999,
+      border: '1px solid #d7e2ee',
+      background: '#fff',
       fontSize: 12,
-      color: 'rgba(244,240,232,0.72)',
-      border: '1px solid rgba(255,255,255,0.08)',
-      background: 'rgba(255,255,255,0.03)',
-      fontFamily: 'var(--font-mono)',
-      letterSpacing: '0.02em',
+      color: '#344a5f',
     }}>
-      <strong style={{ color: 'rgba(244,240,232,0.5)', fontWeight: 500 }}>{label}</strong>
-      {value}
+      <strong style={{ color: '#60758a' }}>{label}</strong>{value}
     </span>
-  );
-}
-
-function LagnaCard({ title, tone, desc, data }: { title: string; tone: string; desc: string; data: LagnaData }) {
-  return (
-    <div className="astro-shell astro-shell--compact" style={{ padding: 18 }}>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <div style={{
-          fontSize: 10,
-          letterSpacing: '0.14em',
-          textTransform: 'uppercase',
-          color: tone,
-          marginBottom: 10,
-          fontWeight: 600,
-        }}>{title}</div>
-        <div style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 26,
-          lineHeight: 1.2,
-          marginBottom: 6,
-        }}>{formatLagna(data)}</div>
-        <div style={{ fontSize: 12, color: 'rgba(244,240,232,0.56)' }}>{desc}</div>
-      </div>
-    </div>
   );
 }
 
@@ -111,9 +87,7 @@ export default function HomePage() {
         const sec = (data as { currentUtcOffset?: { seconds?: number } }).currentUtcOffset?.seconds;
         if (typeof sec === 'number') setTzOffset(Math.round(sec / 60));
       }
-    } catch {
-      // keep manual timezone value
-    }
+    } catch {}
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -136,14 +110,7 @@ export default function HomePage() {
       const res = await fetch('/api/calculate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          date,
-          time,
-          tzOffset,
-          lat: loc.lat,
-          lon: loc.lon,
-          label: loc.label,
-        }),
+        body: JSON.stringify({ date, time, tzOffset, lat: loc.lat, lon: loc.lon, label: loc.label }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Calculation failed');
@@ -158,95 +125,34 @@ export default function HomePage() {
   const lagnaFromChart = useMemo(() => result?.planets.find((p) => p.planet === 'Lagna') ?? null, [result]);
 
   return (
-    <main style={{ maxWidth: 1080, margin: '0 auto', padding: '30px 16px 64px' }}>
-      <header style={{ textAlign: 'center', marginBottom: 24 }}>
-        <div style={{
-          display: 'inline-flex',
-          gap: 8,
-          alignItems: 'center',
-          borderRadius: 999,
-          border: '1px solid rgba(212,160,23,0.28)',
-          background: 'rgba(212,160,23,0.08)',
-          color: 'rgba(212,160,23,0.84)',
-          padding: '6px 12px',
-          fontSize: 11,
-          letterSpacing: '0.16em',
-          textTransform: 'uppercase',
-          marginBottom: 12,
-        }}>
-          Jyotish Engine
-        </div>
-        <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(30px, 5vw, 48px)',
-          fontWeight: 400,
-          lineHeight: 1.15,
-          margin: 0,
-        }}>
-          Unified Kundli Workspace
-        </h1>
-        <p style={{ marginTop: 10, color: 'rgba(244,240,232,0.58)', fontSize: 14 }}>
-          One input flow, one calculation flow, one result view for Lagna and Rasi charts.
+    <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px 48px' }}>
+      <header style={{ marginBottom: 18 }}>
+        <h1 style={{ margin: 0, fontSize: 32, color: '#1d2733' }}>Kundli Calculator</h1>
+        <p style={{ margin: '6px 0 0', color: '#60758a', fontSize: 14 }}>
+          Flat bright view with unified Lagna + chart output.
         </p>
       </header>
 
-      <section className="astro-shell" style={{ padding: 20, marginBottom: 20 }}>
-        <form onSubmit={handleSubmit} style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: 12,
-            marginBottom: 12,
-          }}>
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'rgba(244,240,232,0.58)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Birth Date
-              </span>
-              <input className="astro-input" type="date" required value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '12px 14px' }} />
+      <section className="astro-shell" style={{ padding: 16, marginBottom: 16 }}>
+        <form onSubmit={handleSubmit}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 10 }}>
+            <label style={{ display: 'grid', gap: 5 }}>
+              <span style={{ fontSize: 12, color: '#5d7388' }}>Birth Date</span>
+              <input className="astro-input" type="date" required value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '10px 12px' }} />
             </label>
-
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'rgba(244,240,232,0.58)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Birth Time (Local)
-              </span>
-              <input className="astro-input" type="time" required value={time} onChange={(e) => setTime(e.target.value)} style={{ padding: '12px 14px' }} />
+            <label style={{ display: 'grid', gap: 5 }}>
+              <span style={{ fontSize: 12, color: '#5d7388' }}>Birth Time (Local)</span>
+              <input className="astro-input" type="time" required value={time} onChange={(e) => setTime(e.target.value)} style={{ padding: '10px 12px' }} />
             </label>
-
-            <label style={{ display: 'grid', gap: 6 }}>
-              <span style={{ fontSize: 11, color: 'rgba(244,240,232,0.58)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                Birth Place
-              </span>
+            <label style={{ display: 'grid', gap: 5 }}>
+              <span style={{ fontSize: 12, color: '#5d7388' }}>Birth Place</span>
               <LocationInput onSelect={handleLocSelect} />
             </label>
           </div>
 
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: 10,
-            padding: '11px 12px',
-            borderRadius: 12,
-            border: '1px solid rgba(255,255,255,0.06)',
-            background: 'rgba(255,255,255,0.02)',
-            marginBottom: 14,
-          }}>
-            <span style={{ fontSize: 11, color: 'rgba(244,240,232,0.56)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-              Timezone Offset (minutes)
-            </span>
-            <input
-              className="astro-input"
-              type="number"
-              value={tzOffset}
-              onChange={(e) => setTzOffset(Number(e.target.value))}
-              min={-840}
-              max={840}
-              step={15}
-              style={{ width: 92, padding: '8px 10px', fontFamily: 'var(--font-mono)' }}
-            />
-            <span style={{ fontSize: 12, color: 'rgba(244,240,232,0.5)' }}>
-              Auto-detected on place selection. You can override manually.
-            </span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ fontSize: 12, color: '#5d7388' }}>Timezone Offset (minutes)</span>
+            <input className="astro-input" type="number" value={tzOffset} onChange={(e) => setTzOffset(Number(e.target.value))} min={-840} max={840} step={15} style={{ width: 90, padding: '8px 10px' }} />
           </div>
 
           <button
@@ -254,95 +160,69 @@ export default function HomePage() {
             disabled={loading}
             style={{
               width: '100%',
-              border: 'none',
-              borderRadius: 14,
-              padding: '14px 16px',
-              fontFamily: 'var(--font-display)',
-              fontSize: 15,
-              letterSpacing: '0.05em',
+              border: '1px solid #1476d1',
+              borderRadius: 8,
+              background: loading ? '#eaf1f8' : '#1476d1',
+              color: loading ? '#54708a' : '#fff',
+              padding: '11px 14px',
+              fontSize: 14,
+              fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
-              background: loading
-                ? 'rgba(255,255,255,0.08)'
-                : 'linear-gradient(135deg, #f0c65d 0%, #d4a017 55%, #a7760b 100%)',
-              color: loading ? 'rgba(244,240,232,0.5)' : '#1c1300',
               display: 'inline-flex',
+              justifyContent: 'center',
               gap: 8,
               alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
             {loading && <span className="astro-input-spinner" />}
-            {loading ? 'Calculating Unified Kundli…' : 'Calculate Kundli'}
+            {loading ? 'Calculating…' : 'Calculate Kundli'}
           </button>
         </form>
       </section>
 
       {error && (
-        <div style={{
-          marginBottom: 14,
-          borderRadius: 12,
-          border: '1px solid rgba(239,68,68,0.34)',
-          background: 'rgba(239,68,68,0.12)',
-          color: '#fda4af',
-          padding: '10px 12px',
-          fontSize: 13,
-        }}>
+        <div style={{ border: '1px solid #f2c4c4', background: '#fff1f1', color: '#9a2b2b', padding: '10px 12px', borderRadius: 8, marginBottom: 12 }}>
           {error}
         </div>
       )}
 
       {result && (
-        <section style={{ display: 'grid', gap: 16 }}>
-          <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-            <LagnaCard title={LAGNA_META.udaya.label} tone={LAGNA_META.udaya.tone} desc={LAGNA_META.udaya.desc} data={result.udaya} />
-            <LagnaCard title={LAGNA_META.hora.label} tone={LAGNA_META.hora.tone} desc={LAGNA_META.hora.desc} data={result.hora} />
-            <LagnaCard title={LAGNA_META.ghati.label} tone={LAGNA_META.ghati.tone} desc={LAGNA_META.ghati.desc} data={result.ghati} />
+        <section style={{ display: 'grid', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10 }}>
+            <LagnaCard label={LAGNA_META.udaya.label} color={LAGNA_META.udaya.color} value={fmt(result.udaya)} />
+            <LagnaCard label={LAGNA_META.hora.label} color={LAGNA_META.hora.color} value={fmt(result.hora)} />
+            <LagnaCard label={LAGNA_META.ghati.label} color={LAGNA_META.ghati.color} value={fmt(result.ghati)} />
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            <ResultPill label="Place" value={result.place} />
-            <ResultPill label="Latitude" value={`${result.lat.toFixed(4)}°`} />
-            <ResultPill label="Longitude" value={`${result.lon.toFixed(4)}°`} />
-            <ResultPill label="Sunrise" value={result.sunriseLocal || 'N/A'} />
-            <ResultPill label="Elapsed" value={`${result.elapsedHours.toFixed(2)} h`} />
-            {lagnaFromChart && <ResultPill label="Lagna from Chart" value={`${lagnaFromChart.degree}°${String(lagnaFromChart.minute).padStart(2, '0')}′ ${lagnaFromChart.planet === 'Lagna' ? '' : ''}`} />}
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <Pill label="Place" value={result.place} />
+            <Pill label="Latitude" value={`${result.lat.toFixed(4)}°`} />
+            <Pill label="Longitude" value={`${result.lon.toFixed(4)}°`} />
+            <Pill label="Sunrise" value={result.sunriseLocal || 'N/A'} />
+            <Pill label="Elapsed" value={`${result.elapsedHours.toFixed(2)} h`} />
+            {lagnaFromChart && <Pill label="Lagna From Chart" value={`${lagnaFromChart.degree}°${String(lagnaFromChart.minute).padStart(2, '0')}′`} />}
           </div>
-
-          {result.note && (
-            <div style={{
-              borderRadius: 12,
-              border: '1px solid rgba(245,158,11,0.35)',
-              background: 'rgba(245,158,11,0.12)',
-              color: '#fcd34d',
-              padding: '10px 12px',
-              fontSize: 13,
-            }}>
-              {result.note}
-            </div>
-          )}
 
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             {([
               ['south', 'South Indian'],
               ['north', 'North Indian'],
               ['both', 'Both'],
-            ] as const).map(([value, label]) => {
-              const active = style === value;
+            ] as const).map(([val, label]) => {
+              const active = style === val;
               return (
                 <button
-                  key={value}
+                  key={val}
                   type="button"
-                  onClick={() => setStyle(value)}
+                  onClick={() => setStyle(val)}
                   style={{
+                    border: `1px solid ${active ? '#1476d1' : '#c4d3e2'}`,
+                    background: active ? '#e8f2fc' : '#fff',
+                    color: active ? '#0d5fa9' : '#466179',
                     borderRadius: 999,
-                    border: `1px solid ${active ? 'rgba(212,160,23,0.5)' : 'rgba(255,255,255,0.1)'}`,
-                    background: active ? 'rgba(212,160,23,0.16)' : 'rgba(255,255,255,0.03)',
-                    color: active ? '#f6d37d' : 'rgba(244,240,232,0.66)',
-                    padding: '8px 13px',
-                    cursor: 'pointer',
+                    padding: '6px 11px',
                     fontSize: 12,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
+                    cursor: 'pointer',
                   }}
                 >
                   {label}
@@ -351,20 +231,15 @@ export default function HomePage() {
             })}
           </div>
 
-          <div style={{
-            display: style === 'both' ? 'grid' : 'block',
-            gridTemplateColumns: style === 'both' ? 'repeat(auto-fit, minmax(340px, 1fr))' : undefined,
-            gap: 16,
-          }}>
+          <div style={{ display: style === 'both' ? 'grid' : 'block', gridTemplateColumns: style === 'both' ? 'repeat(auto-fit,minmax(340px,1fr))' : undefined, gap: 12 }}>
             {(style === 'south' || style === 'both') && (
-              <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ display: 'grid', gap: 6 }}>
                 <div className="astro-shell__title">South Indian Rasi</div>
                 <SouthIndianChart planets={result.planets} />
               </div>
             )}
-
             {(style === 'north' || style === 'both') && (
-              <div style={{ display: 'grid', gap: 8 }}>
+              <div style={{ display: 'grid', gap: 6 }}>
                 <div className="astro-shell__title">North Indian Rasi</div>
                 <NorthIndianChart planets={result.planets} />
               </div>
@@ -372,18 +247,8 @@ export default function HomePage() {
           </div>
 
           <div>
-            <div className="astro-shell__title" style={{ marginBottom: 8 }}>Planetary Placement Summary</div>
+            <div className="astro-shell__title" style={{ marginBottom: 6 }}>Planetary Placement Summary</div>
             <PlanetTable planets={result.planets} />
-          </div>
-
-          <div style={{
-            fontSize: 12,
-            color: 'rgba(244,240,232,0.48)',
-            borderTop: '1px solid rgba(255,255,255,0.08)',
-            paddingTop: 12,
-            lineHeight: 1.7,
-          }}>
-            Lahiri (Chitrapaksha) Ayanamsa · Whole-sign houses · Unified source object powers Lagna cards and chart rendering.
           </div>
         </section>
       )}
