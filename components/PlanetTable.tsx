@@ -5,75 +5,60 @@ import { PlanetPosition, RASI_NAMES_LIST } from '../lib/chartEngine';
 interface Props { planets: PlanetPosition[]; }
 
 const PLANET_COLORS: Record<string, string> = {
-  Sun: '#c27c00', Moon: '#2f6fb6', Mars: '#c53030',
-  Mercury: '#18794e', Jupiter: '#b36b00', Venus: '#ad3f84',
-  Saturn: '#4b6073', Rahu: '#556987', Ketu: '#556987', Lagna: '#1476d1',
+  Sun: '#e8b447',
+  Moon: '#9ac7ff',
+  Mars: '#ff8a7a',
+  Mercury: '#8dd9a8',
+  Jupiter: '#f0cd72',
+  Venus: '#f5a8db',
+  Saturn: '#b8c5dc',
+  Rahu: '#d9c8ff',
+  Ketu: '#d9c8ff',
+  Lagna: '#f0cd72',
 };
 
 export default function PlanetTable({ planets }: Props) {
   const rows = planets.filter((planet) => planet.planet !== 'Lagna');
 
   return (
-    <div className="astro-shell astro-shell--table">
-      <div className="astro-table-shell">
-        <table>
-          <thead>
-            <tr>
-              {['Name', 'Planet', 'Rasi', 'Degree', 'House', 'Status'].map((header) => (
-                <th
-                  key={header}
-                  style={{
-                    padding: '11px 14px',
-                    textAlign: 'left',
-                    fontSize: 10,
-                    letterSpacing: '0.14em',
-                    textTransform: 'uppercase',
-                    color: '#5f7183',
-                    borderBottom: '1px solid #dbe5ef',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((planet, index) => (
-              <tr key={planet.planet} style={{ background: index % 2 === 0 ? 'transparent' : '#f8fbff' }}>
-                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                  <span style={{
-                    fontSize: 12,
-                    color: PLANET_COLORS[planet.planet] ?? '#D4A017',
-                    fontFamily: 'var(--font-mono)',
-                    fontWeight: 600,
-                  }}>{planet.planet}</span>
-                </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: PLANET_COLORS[planet.planet] ?? '#1d2733' }}>
-                  {planet.planet}
-                </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: '#2f4356', fontFamily: 'var(--font-body)' }}>
-                  {RASI_NAMES_LIST[planet.rasi]}
-                </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: '#41586e', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
-                  {planet.degree}°{String(planet.minute).padStart(2, '0')}′
-                </td>
-                <td style={{ padding: '10px 14px', fontSize: 13, color: '#1476d1', fontFamily: 'var(--font-mono)' }}>
-                  {planet.house}
-                </td>
-                <td style={{ padding: '10px 14px', fontSize: 12 }}>
-                  {planet.isRetrograde ? (
-                    <span style={{ color: '#be123c', fontFamily: 'var(--font-mono)' }}>℞</span>
-                  ) : (
-                    <span style={{ color: '#9aabbd' }}>—</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div className="table-list">
+      {rows.map((planet) => (
+        <div key={planet.planet} className="table-item">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+            <div style={{ color: PLANET_COLORS[planet.planet] ?? '#f6f0de', fontWeight: 700, fontSize: 15 }}>
+              {planet.planet}
+            </div>
+            <div style={{ color: '#f0cd72', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
+              House {planet.house}
+            </div>
+          </div>
+
+          <div className="table-item-grid">
+            <div>
+              <div style={{ color: '#9ea7bf', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Rasi</div>
+              <div style={{ color: '#f6f0de' }}>{RASI_NAMES_LIST[planet.rasi]}</div>
+            </div>
+            <div>
+              <div style={{ color: '#9ea7bf', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Degree</div>
+              <div style={{ color: '#f6f0de', fontFamily: 'var(--font-mono)' }}>
+                {planet.degree}°{String(planet.minute).padStart(2, '0')}′
+              </div>
+            </div>
+            <div>
+              <div style={{ color: '#9ea7bf', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</div>
+              <div style={{ color: planet.isRetrograde ? '#fca5a5' : '#c7c0ac', fontFamily: 'var(--font-mono)' }}>
+                {planet.isRetrograde ? 'Retrograde ℞' : 'Direct'}
+              </div>
+            </div>
+            <div>
+              <div style={{ color: '#9ea7bf', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Longitude</div>
+              <div style={{ color: '#f6f0de', fontFamily: 'var(--font-mono)' }}>
+                {planet.longitude.toFixed(2)}°
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

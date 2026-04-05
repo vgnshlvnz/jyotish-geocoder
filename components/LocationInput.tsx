@@ -2,7 +2,11 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
-interface GeoResult { display_name: string; lat: string; lon: string; }
+interface GeoResult {
+  display_name: string;
+  lat: string;
+  lon: string;
+}
 
 interface Props {
   onSelect: (lat: number, lon: number, label: string) => void;
@@ -31,7 +35,6 @@ export default function LocationInput({ onSelect }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ q }),
       });
-
       if (res.ok) {
         const data: GeoResult[] = await res.json();
         const next = data.slice(0, 5);
@@ -49,8 +52,10 @@ export default function LocationInput({ onSelect }: Props) {
   useEffect(() => {
     if (selected && query === selected) return;
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => search(query), 300);
-    return () => { if (timer.current) clearTimeout(timer.current); };
+    timer.current = setTimeout(() => search(query), 320);
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
   }, [query, search, selected]);
 
   useEffect(() => {
@@ -74,7 +79,7 @@ export default function LocationInput({ onSelect }: Props) {
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
       <input
-        className="astro-input"
+        className="vedic-input"
         type="text"
         value={query}
         onChange={(e) => {
@@ -86,35 +91,31 @@ export default function LocationInput({ onSelect }: Props) {
         onFocus={() => {
           if (results.length > 0) setOpen(true);
         }}
-        style={{ padding: '12px 14px', paddingRight: loading ? 36 : 14 }}
+        style={{ paddingRight: loading ? 36 : 12 }}
       />
 
       {loading && (
         <span
-          className="astro-input-spinner"
+          className="loader-ring"
           style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}
         />
       )}
 
       {open && (
-        <div className="astro-dropdown" role="listbox" aria-label="location suggestions">
+        <div className="vedic-dropdown" role="listbox" aria-label="location suggestions">
           {results.length === 0 ? (
-            <div className="astro-dropdown__empty">No locations found.</div>
+            <div style={{ color: '#c7c0ac', padding: '10px' }}>No locations found.</div>
           ) : (
-            <ul className="astro-dropdown__list">
+            <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
               {results.map((item, idx) => (
                 <li key={`${item.display_name}-${idx}`}>
-                  <button
-                    type="button"
-                    className="astro-dropdown__item"
-                    onMouseDown={() => pick(item)}
-                  >
-                    <div className="astro-dropdown__item-title">
-                      {item.display_name.length > 85
-                        ? `${item.display_name.slice(0, 82)}...`
+                  <button type="button" className="vedic-dropdown-item" onMouseDown={() => pick(item)}>
+                    <div style={{ fontSize: 13, lineHeight: 1.35 }}>
+                      {item.display_name.length > 88
+                        ? `${item.display_name.slice(0, 85)}...`
                         : item.display_name}
                     </div>
-                    <div className="astro-dropdown__item-meta">
+                    <div style={{ marginTop: 3, fontSize: 11, color: '#9ea7bf' }}>
                       lat {Number(item.lat).toFixed(4)} · lon {Number(item.lon).toFixed(4)}
                     </div>
                   </button>

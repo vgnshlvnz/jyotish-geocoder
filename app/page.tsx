@@ -1,13 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { PlanetPosition } from '../lib/chartEngine';
 import SouthIndianChart from '../components/SouthIndianChart';
 import NorthIndianChart from '../components/NorthIndianChart';
 import PlanetTable from '../components/PlanetTable';
 import LocationInput from '../components/LocationInput';
 
-type ChartStyle = 'south' | 'north' | 'both';
+type ChartStyle = 'south' | 'north';
 
 type LagnaData = {
   rasi: string;
@@ -31,39 +31,30 @@ type UnifiedResult = {
 
 type LocState = { lat: number; lon: number; label: string };
 
-const LAGNA_META = {
-  udaya: { label: 'Udaya Lagna', color: '#1476d1' },
-  hora: { label: 'Hora Lagna', color: '#7a5af8' },
-  ghati: { label: 'Ghati Lagna', color: '#10b981' },
-} as const;
-
-function fmt(data: LagnaData): string {
-  return `${data.rasi} ${data.degree}°${String(data.minute).padStart(2, '0')}′`;
+function fmtLagna(v: LagnaData): string {
+  return `${v.rasi}`;
 }
 
-function LagnaCard({ label, color, value }: { label: string; color: string; value: string }) {
-  return (
-    <div className="astro-shell" style={{ padding: 14 }}>
-      <div style={{ fontSize: 12, color, fontWeight: 700, marginBottom: 6 }}>{label}</div>
-      <div style={{ fontSize: 24, fontWeight: 600, color: '#1d2733' }}>{value}</div>
-    </div>
-  );
+function fmtDegree(v: LagnaData): string {
+  return `${v.degree}°${String(v.minute).padStart(2, '0')}′`;
 }
 
-function Pill({ label, value }: { label: string; value: string }) {
+function InfoPill({ label, value }: { label: string; value: string }) {
   return (
     <span style={{
       display: 'inline-flex',
-      gap: 6,
       alignItems: 'center',
-      padding: '6px 10px',
+      gap: 6,
+      minHeight: 32,
       borderRadius: 999,
-      border: '1px solid #d7e2ee',
-      background: '#fff',
+      border: '1px solid #354576',
+      padding: '0 10px',
       fontSize: 12,
-      color: '#344a5f',
+      color: '#c7c0ac',
+      background: '#0e1734',
     }}>
-      <strong style={{ color: '#3f556a' }}>{label}</strong>{value}
+      <strong style={{ color: '#f6f0de', fontWeight: 600 }}>{label}</strong>
+      {value}
     </span>
   );
 }
@@ -73,33 +64,36 @@ export default function HomePage() {
   const [time, setTime] = useState('');
   const [loc, setLoc] = useState<LocState>({ lat: 0, lon: 0, label: '' });
   const [tzOffset, setTzOffset] = useState<number>(-new Date().getTimezoneOffset());
-  const [style, setStyle] = useState<ChartStyle>('both');
+  const [style, setStyle] = useState<ChartStyle>('south');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState<UnifiedResult | null>(null);
+  const resultRef = useRef<HTMLElement | null>(null);
 
   async function handleLocSelect(lat: number, lon: number, label: string) {
     setLoc({ lat, lon, label });
     try {
-      const res = await fetch(`https://timeapi.io/api/timezone/coordinate?latitude=${lat}&longitude=${lon}`);
-      if (res.ok) {
-        const data = await res.json();
-        const sec = (data as { currentUtcOffset?: { seconds?: number } }).currentUtcOffset?.seconds;
-        if (typeof sec === 'number') setTzOffset(Math.round(sec / 60));
+      const r = await fetch(`https://timeapi.io/api/timezone/coordinate?latitude=${lat}&longitude=${lon}`);
+      if (r.ok) {
+        const d = await r.json();
+        const secs = (d as { currentUtcOffset?: { seconds?: number } }).currentUtcOffset?.seconds;
+        if (typeof secs === 'number') setTzOffset(Math.round(secs / 60));
       }
-    } catch {}
+    } catch {
+      // keep existing tz
+    }
   }
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
 
     if (!date || !time) {
-      setError('Please enter birth date and birth time.');
+      setError('Please enter date and time of birth.');
       return;
     }
     if (!loc.lat && !loc.lon) {
-      setError('Please select a birth place from suggestions.');
+      setError('Please choose a location from suggestions.');
       return;
     }
 
@@ -122,134 +116,113 @@ export default function HomePage() {
     }
   }
 
-  const lagnaFromChart = useMemo(() => result?.planets.find((p) => p.planet === 'Lagna') ?? null, [result]);
+  useEffect(() => {
+    if (result && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [result]);
+
+  const lagnaPlanet = useMemo(() => result?.planets.find((p) => p.planet === 'Lagna') ?? null, [result]);
 
   return (
-    <main style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px 48px' }}>
-      <header style={{ marginBottom: 18 }}>
-        <h1 style={{ margin: 0, fontSize: 32, color: '#1d2733' }}>Kundli Calculator</h1>
-        <p style={{ margin: '6px 0 0', color: '#3f556a', fontSize: 14 }}>
-          Flat bright view with unified Lagna + chart output.
-        </p>
+    <main style={{ maxWidth: 760, margin: '0 auto', padding: '14px 12px 30px' }}>
+      <header style={{ textAlign: 'center', marginBottom: 14 }}>
+        <h1 className="vedic-title" style={{ margin: 0, fontSize: 30, fontWeight: 600 }}>Jyotish Lagna Calculator</h1>
+        <p style={{ margin: '4px 0 0', color: '#d4af47', fontSize: 13 }}>ज्योतिषीय लग्न गणना</p>
+        <p style={{ margin: '6px 0 0', color: '#c7c0ac', fontSize: 13 }}>Enter birth details once, see Lagna and chart instantly.</p>
       </header>
 
-      <section className="astro-shell" style={{ padding: 16, marginBottom: 16 }}>
-        <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10, marginBottom: 10 }}>
-            <label style={{ display: 'grid', gap: 5 }}>
-              <span style={{ fontSize: 12, color: '#344b60' }}>Birth Date</span>
-              <input className="astro-input" type="date" required value={date} onChange={(e) => setDate(e.target.value)} style={{ padding: '10px 12px' }} />
+      <section className="vedic-card vedic-card--gold" style={{ padding: 12 }}>
+        <h2 className="vedic-title" style={{ margin: '0 0 10px', fontSize: 18 }}>Birth Details</h2>
+        <form onSubmit={onSubmit}>
+          <div style={{ display: 'grid', gap: 10 }}>
+            <label style={{ display: 'grid', gap: 6 }}>
+              <span className="vedic-label">Date Of Birth</span>
+              <input className="vedic-input" type="date" required value={date} onChange={(e) => setDate(e.target.value)} />
             </label>
-            <label style={{ display: 'grid', gap: 5 }}>
-              <span style={{ fontSize: 12, color: '#344b60' }}>Birth Time (Local)</span>
-              <input className="astro-input" type="time" required value={time} onChange={(e) => setTime(e.target.value)} style={{ padding: '10px 12px' }} />
-            </label>
-            <label style={{ display: 'grid', gap: 5 }}>
-              <span style={{ fontSize: 12, color: '#344b60' }}>Birth Place</span>
-              <LocationInput onSelect={handleLocSelect} />
-            </label>
-          </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
-            <span style={{ fontSize: 12, color: '#344b60' }}>Timezone Offset (minutes)</span>
-            <input className="astro-input" type="number" value={tzOffset} onChange={(e) => setTzOffset(Number(e.target.value))} min={-840} max={840} step={15} style={{ width: 90, padding: '8px 10px' }} />
+            <label style={{ display: 'grid', gap: 6 }}>
+              <span className="vedic-label">Time Of Birth (Local)</span>
+              <input className="vedic-input" type="time" required value={time} onChange={(e) => setTime(e.target.value)} />
+            </label>
+
+            <label style={{ display: 'grid', gap: 6 }}>
+              <span className="vedic-label">Birth Location</span>
+              <LocationInput onSelect={handleLocSelect} />
+              <span style={{ fontSize: 12, color: '#c7c0ac' }}>Select from suggestions for accurate latitude/longitude.</span>
+            </label>
+
+            <label style={{ display: 'grid', gap: 6 }}>
+              <span className="vedic-label">Timezone Offset (minutes)</span>
+              <input className="vedic-input" type="number" min={-840} max={840} step={15} value={tzOffset} onChange={(e) => setTzOffset(Number(e.target.value))} />
+            </label>
           </div>
 
           <button
             type="submit"
+            className="vedic-btn"
             disabled={loading}
-            style={{
-              width: '100%',
-              border: '1px solid #1476d1',
-              borderRadius: 8,
-              background: loading ? '#eaf1f8' : '#1476d1',
-              color: loading ? '#54708a' : '#fff',
-              padding: '11px 14px',
-              fontSize: 14,
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              display: 'inline-flex',
-              justifyContent: 'center',
-              gap: 8,
-              alignItems: 'center',
-            }}
+            style={{ width: '100%', marginTop: 12, display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: 8 }}
           >
-            {loading && <span className="astro-input-spinner" />}
-            {loading ? 'Calculating…' : 'Calculate Kundli'}
+            {loading && <span className="loader-ring" />}
+            {loading ? 'Calculating...' : 'Calculate Lagna'}
           </button>
         </form>
       </section>
 
       {error && (
-        <div style={{ border: '1px solid #f2c4c4', background: '#fff1f1', color: '#9a2b2b', padding: '10px 12px', borderRadius: 8, marginBottom: 12 }}>
+        <div style={{ marginTop: 10, border: '1px solid #7c2d2d', background: '#381919', color: '#fca5a5', borderRadius: 10, padding: '10px 12px', fontSize: 13 }}>
           {error}
         </div>
       )}
 
       {result && (
-        <section style={{ display: 'grid', gap: 12 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 10 }}>
-            <LagnaCard label={LAGNA_META.udaya.label} color={LAGNA_META.udaya.color} value={fmt(result.udaya)} />
-            <LagnaCard label={LAGNA_META.hora.label} color={LAGNA_META.hora.color} value={fmt(result.hora)} />
-            <LagnaCard label={LAGNA_META.ghati.label} color={LAGNA_META.ghati.color} value={fmt(result.ghati)} />
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <Pill label="Place" value={result.place} />
-            <Pill label="Latitude" value={`${result.lat.toFixed(4)}°`} />
-            <Pill label="Longitude" value={`${result.lon.toFixed(4)}°`} />
-            <Pill label="Sunrise" value={result.sunriseLocal || 'N/A'} />
-            <Pill label="Elapsed" value={`${result.elapsedHours.toFixed(2)} h`} />
-            {lagnaFromChart && <Pill label="Lagna From Chart" value={`${lagnaFromChart.degree}°${String(lagnaFromChart.minute).padStart(2, '0')}′`} />}
-          </div>
-
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {([
-              ['south', 'South Indian'],
-              ['north', 'North Indian'],
-              ['both', 'Both'],
-            ] as const).map(([val, label]) => {
-              const active = style === val;
-              return (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setStyle(val)}
-                  style={{
-                    border: `1px solid ${active ? '#1476d1' : '#c4d3e2'}`,
-                    background: active ? '#e8f2fc' : '#fff',
-                    color: active ? '#0d5fa9' : '#466179',
-                    borderRadius: 999,
-                    padding: '6px 11px',
-                    fontSize: 12,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div style={{ display: style === 'both' ? 'grid' : 'block', gridTemplateColumns: style === 'both' ? 'repeat(auto-fit,minmax(340px,1fr))' : undefined, gap: 12 }}>
-            {(style === 'south' || style === 'both') && (
-              <div style={{ display: 'grid', gap: 6 }}>
-                <div className="astro-shell__title">South Indian Rasi</div>
-                <SouthIndianChart planets={result.planets} />
+        <section ref={resultRef} style={{ marginTop: 12, display: 'grid', gap: 12 }}>
+          <section className="vedic-card vedic-card--gold" style={{ padding: 12 }}>
+            <h2 className="vedic-title" style={{ margin: 0, fontSize: 17 }}>Result</h2>
+            <div style={{ marginTop: 8, fontSize: 28, fontWeight: 700, color: '#f0cd72' }}>{fmtLagna(result.udaya)}</div>
+            <div style={{ marginTop: 4, fontSize: 14, color: '#f6f0de' }}>{fmtDegree(result.udaya)}</div>
+            {lagnaPlanet && (
+              <div style={{ marginTop: 6, fontSize: 12, color: '#c7c0ac' }}>
+                Chart Lagna: House {lagnaPlanet.house}
               </div>
             )}
-            {(style === 'north' || style === 'both') && (
-              <div style={{ display: 'grid', gap: 6 }}>
-                <div className="astro-shell__title">North Indian Rasi</div>
-                <NorthIndianChart planets={result.planets} />
-              </div>
-            )}
-          </div>
 
-          <div>
-            <div className="astro-shell__title" style={{ marginBottom: 6 }}>Planetary Placement Summary</div>
-            <PlanetTable planets={result.planets} />
-          </div>
+            <div style={{ marginTop: 10, display: 'flex', gap: 7, flexWrap: 'wrap' }}>
+              <InfoPill label="Place" value={result.place} />
+              <InfoPill label="Lat" value={`${result.lat.toFixed(3)}°`} />
+              <InfoPill label="Lon" value={`${result.lon.toFixed(3)}°`} />
+              <InfoPill label="Sunrise" value={result.sunriseLocal || 'N/A'} />
+            </div>
+          </section>
+
+          <section className="vedic-card" style={{ padding: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+              <h3 className="vedic-title" style={{ margin: 0, fontSize: 16 }}>Rasi Chart</h3>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className={`pill-toggle ${style === 'south' ? 'active' : ''}`} onClick={() => setStyle('south')}>South</button>
+                <button type="button" className={`pill-toggle ${style === 'north' ? 'active' : ''}`} onClick={() => setStyle('north')}>North</button>
+              </div>
+            </div>
+
+            <div className="chart-wrap">
+              {style === 'south' ? <SouthIndianChart planets={result.planets} /> : <NorthIndianChart planets={result.planets} />}
+            </div>
+          </section>
+
+          <details className="vedic-disclosure">
+            <summary>Optional Details</summary>
+            <div style={{ marginTop: 10, display: 'grid', gap: 12 }}>
+              <div style={{ fontSize: 13, color: '#c7c0ac' }}>
+                Hora Lagna: <strong style={{ color: '#f6f0de' }}>{fmtLagna(result.hora)} {fmtDegree(result.hora)}</strong>
+                <br />
+                Ghati Lagna: <strong style={{ color: '#f6f0de' }}>{fmtLagna(result.ghati)} {fmtDegree(result.ghati)}</strong>
+                <br />
+                Elapsed from sunrise: <strong style={{ color: '#f6f0de' }}>{result.elapsedHours.toFixed(2)} h</strong>
+              </div>
+              <PlanetTable planets={result.planets} />
+            </div>
+          </details>
         </section>
       )}
     </main>
