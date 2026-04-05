@@ -11,6 +11,24 @@ export interface PlanetPosition {
   house: number;        // 1–12 whole-sign
 }
 
+export interface LagnaData {
+  rasi: string;
+  degree: number;
+  minute: number;
+  totalDeg: number;
+}
+
+export interface UnifiedChartCalculation {
+  planets: PlanetPosition[];
+  udaya: LagnaData;
+  hora: LagnaData;
+  ghati: LagnaData;
+  birthJulianDay: number;
+  sunriseJulianDay: number | null;
+  elapsedHours: number;
+  note?: string;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const PI = Math.PI;
@@ -19,6 +37,18 @@ function toDeg(r: number): number { return r * 180 / PI; }
 function norm360(d: number): number { return ((d % 360) + 360) % 360; }
 function sin(d: number): number { return Math.sin(toRad(d)); }
 function cos(d: number): number { return Math.cos(toRad(d)); }
+function meanObliquity(T: number): number {
+  return 23.439291111 - 0.013004167 * T - 0.0000001639 * T * T + 0.0000005036 * T * T * T;
+}
+function greenwichMeanSiderealTime(jd: number): number {
+  const T = (jd - 2451545.0) / 36525.0;
+  return norm360(
+    280.46061837 +
+    360.98564736629 * (jd - 2451545.0) +
+    0.000387933 * T * T -
+    (T * T * T) / 38710000
+  );
+}
 
 /** Newton's method to solve Kepler's equation E - e·sin(E) = M
  *  M in degrees, returns E in degrees */
@@ -50,6 +80,64 @@ export function julianDay(year: number, month: number, day: number, ut: number):
 /** Lahiri (Chitrapaksha): 23.853° at JD 2415020.0 (Jan 0.5, 1900), rate 50.3″/year */
 export function lahiriAyanamsa(jd: number): number {
   return 23.853 + (jd - 2415020.0) / 365.25 * (50.3 / 3600);
+}
+
+function solarAltitude(jd: number, latDeg: number, lonDeg: number): number {
+  const T = (jd - 2451545.0) / 36525.0;
+  const L0 = norm360(280.46646 + 36000.76983 * T);
+  const M = toRad(357.52911 + 35999.05029 * T - 0.0001537 * T * T);
+  const C = (1.914602 - 0.004817 * T) * Math.sin(M) + 0.019993 * Math.sin(2 * M);
+  const sunLon = toRad(norm360(L0 + C));
+  const eps = toRad(meanObliquity(T));
+  const ra = Math.atan2(Math.cos(eps) * Math.sin(sunLon), Math.cos(sunLon));
+  const dec = Math.asin(Math.sin(eps) * Math.sin(sunLon));
+  const lstRad = toRad(greenwichMeanSiderealTime(jd) + lonDeg);
+  const ha = lstRad - ra;
+  const latR = toRad(latDeg);
+  return toDeg(
+    Math.asin(
+      Math.sin(latR) * Math.sin(dec) +
+      Math.cos(latR) * Math.cos(dec) * Math.cos(ha)
+    )
+  );
+}
+
+function findSunrise(jdStart: number, latDeg: number, lonDeg: number): number | null {
+  let prev = solarAltitude(jdStart, latDeg, lonDeg);
+  const step = 1 / (24 * 60);
+
+  for (let i = 1; i <= 1440; i++) {
+    const jd = jdStart + i * step;
+    const alt = solarAltitude(jd, latDeg, lonDeg);
+    if (prev < -0.833 && alt >= -0.833) {
+      let lo = jdStart + (i - 1) * step;
+      let hi = jd;
+      for (let k = 0; k < 40; k++) {
+        const mid = (lo + hi) / 2;
+        if (solarAltitude(mid, latDeg, lonDeg) < -0.833) {
+          lo = mid;
+        } else {
+          hi = mid;
+        }
+      }
+      return (lo + hi) / 2;
+    }
+    prev = alt;
+  }
+
+  return null;
+}
+
+function previousSunrise(jdBirth: number, latDeg: number, lonDeg: number): number | null {
+  for (let dayBack = 0; dayBack <= 2; dayBack++) {
+    const windowStart = jdBirth - (dayBack + 1);
+    const sunrise = findSunrise(windowStart, latDeg, lonDeg);
+    if (sunrise !== null && sunrise <= jdBirth) {
+      return sunrise;
+    }
+  }
+
+  return null;
 }
 
 // ─── Sun ──────────────────────────────────────────────────────────────────────
@@ -226,7 +314,9 @@ function computeLagna(jd: number, lat: number, lon: number): number {
   const q = Math.floor(lst / 90) * 90;
   if (Math.abs(norm360(asc) - q) > 90) asc = norm360(asc + 180);
 
-  return norm360(asc - lahiriAyanamsa(jd));
+  // The raw formula above yields the opposite horizon point in this coordinate setup.
+  // Shift by 180° to get the true eastern ascendant before applying ayanamsa.
+  return norm360(asc + 180 - lahiriAyanamsa(jd));
 }
 
 // ─── Rasi helpers ─────────────────────────────────────────────────────────────
@@ -242,6 +332,17 @@ function lonToPosition(lon: number): { rasi: number; degree: number; minute: num
   const degree = Math.floor(rem);
   const minute = Math.floor((rem - degree) * 60);
   return { rasi, degree, minute };
+}
+
+export function longitudeToLagnaData(lon: number): LagnaData {
+  const normalized = norm360(lon);
+  const pos = lonToPosition(normalized);
+  return {
+    rasi: RASI_NAMES[pos.rasi],
+    degree: pos.degree,
+    minute: pos.minute,
+    totalDeg: normalized,
+  };
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
@@ -326,4 +427,64 @@ export function calculateChart(
       house,
     };
   });
+}
+
+export function calculateUnifiedChart(
+  year: number,
+  month: number,
+  day: number,
+  utHour: number,
+  lat: number,
+  lon: number
+): UnifiedChartCalculation {
+  let h = utHour;
+  let d = day;
+  while (h < 0) {
+    d -= 1;
+    h += 24;
+  }
+  while (h >= 24) {
+    d += 1;
+    h -= 24;
+  }
+
+  const birthJulianDay = julianDay(year, month, d, h);
+  const planets = calculateChart(year, month, day, utHour, lat, lon);
+  const lagna = planets.find((planet) => planet.planet === 'Lagna');
+
+  if (!lagna) {
+    throw new Error('Chart calculation did not return a Lagna position.');
+  }
+
+  const udaya = longitudeToLagnaData(lagna.longitude);
+  const sunriseJulianDay = previousSunrise(birthJulianDay, lat, lon);
+
+  if (sunriseJulianDay === null) {
+    return {
+      planets,
+      udaya,
+      hora: udaya,
+      ghati: udaya,
+      birthJulianDay,
+      sunriseJulianDay,
+      elapsedHours: 0,
+      note: 'Hora/Ghati could not be computed (sunrise not found)',
+    };
+  }
+
+  const lagnaAtSunrise = computeLagna(sunriseJulianDay, lat, lon);
+  const elapsedHours = (birthJulianDay - sunriseJulianDay) * 24;
+  const elapsedGhatis = elapsedHours * 2.5;
+  const hora = longitudeToLagnaData(lagnaAtSunrise + elapsedHours * 30);
+  const ghati = longitudeToLagnaData(lagnaAtSunrise + elapsedGhatis * 30);
+
+  return {
+    planets,
+    udaya,
+    hora,
+    ghati,
+    birthJulianDay,
+    sunriseJulianDay,
+    elapsedHours,
+  };
 }
